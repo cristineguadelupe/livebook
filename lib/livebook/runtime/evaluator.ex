@@ -429,7 +429,7 @@ defmodule Livebook.Runtime.Evaluator do
 
     %{tracer_info: tracer_info} = Evaluator.IOProxy.after_evaluation(state.io_proxy)
 
-    {new_context, result, identifiers_used, identifiers_defined} =
+    {new_context, result, identifiers_used, identifiers_defined, modules_metadata} =
       case eval_result do
         {:ok, value, binding, env} ->
           context_id = random_id()
@@ -441,11 +441,11 @@ defmodule Livebook.Runtime.Evaluator do
             pdict: current_pdict(state)
           }
 
-          {identifiers_used, identifiers_defined} =
+          {identifiers_used, identifiers_defined, modules_metadata} =
             identifier_dependencies(new_context, tracer_info, context)
 
           result = {:ok, value}
-          {new_context, result, identifiers_used, identifiers_defined}
+          {new_context, result, identifiers_used, identifiers_defined, modules_metadata}
 
         {:error, kind, error, stacktrace} ->
           for {module, _} <- tracer_info.modules_defined do
@@ -455,9 +455,10 @@ defmodule Livebook.Runtime.Evaluator do
           result = {:error, kind, error, stacktrace}
           identifiers_used = :unknown
           identifiers_defined = %{}
+          modules_metadata = %{}
           # Empty context
           new_context = initial_context()
-          {new_context, result, identifiers_used, identifiers_defined}
+          {new_context, result, identifiers_used, identifiers_defined, modules_metadata}
       end
 
     if ebin_path() do
@@ -475,7 +476,8 @@ defmodule Livebook.Runtime.Evaluator do
       memory_usage: memory(),
       code_markers: code_markers,
       identifiers_used: identifiers_used,
-      identifiers_defined: identifiers_defined
+      identifiers_defined: identifiers_defined,
+      modules_metadata: modules_metadata
     }
 
     send(state.send_to, {:runtime_evaluation_response, ref, output, metadata})
@@ -839,6 +841,7 @@ defmodule Livebook.Runtime.Evaluator do
   defp identifier_dependencies(context, tracer_info, prev_context) do
     identifiers_used = MapSet.new()
     identifiers_defined = %{}
+    modules_metadata = %{}
 
     # Variables
 
@@ -869,6 +872,12 @@ defmodule Livebook.Runtime.Evaluator do
           version = module.__info__(:md5),
           do: {{:module, module}, version},
           into: identifiers_defined
+
+    modules_metadata =
+      for {module, _vars} <- tracer_info.modules_defined,
+          metadata = module_metadata(module.__info__(:module)),
+          do: {{:module, module}, metadata},
+          into: modules_metadata
 
     # Aliases
 
@@ -926,7 +935,7 @@ defmodule Livebook.Runtime.Evaluator do
         put_in(identifiers_defined[:pdict], version)
       end
 
-    {MapSet.to_list(identifiers_used), identifiers_defined}
+    {MapSet.to_list(identifiers_used), identifiers_defined, modules_metadata}
   end
 
   defp vars_used(context, tracer_info, prev_context) do
@@ -1035,5 +1044,17 @@ defmodule Livebook.Runtime.Evaluator do
 
   defp ebin_path() do
     Process.get(@ebin_path_key)
+  end
+
+  defp module_metadata(module) do
+    {_, line, _, _, _, _, functions} = Code.fetch_docs(module)
+    position = Code.Fragment.surround_context(module, {1, 1}) |> Map.delete(:context)
+
+    functions =
+      for {{type, name, arity}, line, _, _, _} <- functions,
+          do: {{type, name}, %{arity: arity, line: line}},
+          into: %{}
+
+    %{line: line, position: position, functions: functions}
   end
 end
