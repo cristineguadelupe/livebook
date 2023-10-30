@@ -705,31 +705,45 @@ defmodule LivebookWeb.SessionLive do
         Sections
       </h3>
       <div class="flex flex-col mt-4 space-y-4">
-        <div :for={section_item <- @data_view.sections_items} class="flex items-center">
-          <button
-            class="grow flex items-center text-gray-500 hover:text-gray-900 text-left"
-            data-el-sections-list-item
-            data-section-id={section_item.id}
-          >
-            <span class="flex items-center space-x-1">
-              <span><%= section_item.name %></span>
-              <% # Note: the container has overflow-y auto, so we cannot set overflow-x visible,
-              # consequently we show the tooltip wrapped to a fixed number of characters %>
-              <span
-                :if={section_item.parent}
-                {branching_tooltip_attrs(section_item.name, section_item.parent.name)}
-              >
-                <.remix_icon
-                  icon="git-branch-line"
-                  class="text-lg font-normal leading-none flip-horizontally"
-                />
+        <div :for={section_item <- @data_view.sections_items} class="flex flex-col">
+          <div class="flex items-center">
+            <button
+              class="grow flex items-center text-gray-500 hover:text-gray-900 text-left"
+              data-el-sections-list-item
+              data-section-id={section_item.id}
+            >
+              <span class="flex items-center space-x-1">
+                <span><%= section_item.name %></span>
+                <% # Note: the container has overflow-y auto, so we cannot set overflow-x visible,
+                # consequently we show the tooltip wrapped to a fixed number of characters %>
+                <span
+                  :if={section_item.parent}
+                  {branching_tooltip_attrs(section_item.name, section_item.parent.name)}
+                >
+                  <.remix_icon
+                    icon="git-branch-line"
+                    class="text-lg font-normal leading-none flip-horizontally"
+                  />
+                </span>
               </span>
-            </span>
-          </button>
-          <.section_status
-            status={elem(section_item.status, 0)}
-            cell_id={elem(section_item.status, 1)}
-          />
+            </button>
+            <.section_status
+              status={elem(section_item.status, 0)}
+              cell_id={elem(section_item.status, 1)}
+            />
+          </div>
+          <div :for={cell <- section_item.defined_modules} class="flex flex-col">
+            <button
+              :for={module <- cell.modules}
+              class="grow flex items-center text-gray-500 hover:text-gray-700 text-left text-sm"
+              data-el-sections-list-item
+              data-section-id={section_item.id}
+            >
+              <span class="flex items-center space-x-1 ml-1">
+                <%= inspect(module.name) %>
+              </span>
+            </button>
+          </div>
         </div>
       </div>
       <button
@@ -2719,11 +2733,11 @@ defmodule LivebookWeb.SessionLive do
   end
 
   defp cells_modules(cells, data) do
-      for cell <- cells,
-          Cell.evaluable?(cell),
-          modules_data = data.cell_infos[cell.id].eval.modules_metadata,
-          modules = (for {{_type, name}, data} <- modules_data, do: {name, data.line}, into: %{}),
-          do: Map.put(modules, :id, cell.id)
+    for cell <- cells,
+        Cell.evaluable?(cell),
+        modules_data = data.cell_infos[cell.id].eval.modules_metadata,
+        modules = for({{_type, name}, data} <- modules_data, do: %{name: name, line: data.line}),
+        do: %{modules: modules, id: cell.id}
   end
 
   defp global_status(data) do
