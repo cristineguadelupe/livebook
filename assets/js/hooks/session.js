@@ -96,6 +96,7 @@ const Session = {
 
     this.getElement("sections-list").addEventListener("click", (event) => {
       this.handleSectionsListClick(event);
+      this.handleSectionModulesClick(event);
       this.handleCellIndicatorsClick(event);
     });
 
@@ -601,6 +602,17 @@ const Session = {
       const sectionId = sectionButton.getAttribute("data-section-id");
       const section = this.getSectionById(sectionId);
       section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  },
+
+  /**
+   * Handles section module clicks in the section modules list.
+   */
+  handleSectionModulesClick(event) {
+    const button = event.target.closest(`[data-el-focus-cell-button]`);
+    if (button) {
+      const cellId = button.getAttribute("data-target");
+      this.setFocusedEl(cellId);
     }
   },
 

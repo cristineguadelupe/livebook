@@ -736,8 +736,8 @@ defmodule LivebookWeb.SessionLive do
             <button
               :for={module <- cell.modules}
               class="grow flex items-center text-gray-500 hover:text-gray-700 text-left text-sm"
-              data-el-sections-list-item
-              data-section-id={section_item.id}
+              data-el-focus-cell-button
+              data-target={cell.id}
             >
               <span class="flex items-center space-x-1 ml-1">
                 <%= inspect(module.name) %>
