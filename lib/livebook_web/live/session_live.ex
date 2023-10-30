@@ -2661,7 +2661,8 @@ defmodule LivebookWeb.SessionLive do
             id: section.id,
             name: section.name,
             parent: parent_section_view(section.parent_id, data),
-            status: cells_status(section.cells, data)
+            status: cells_status(section.cells, data),
+            defined_modules: cells_modules(section.cells, data)
           }
         end,
       clients:
@@ -2715,6 +2716,14 @@ defmodule LivebookWeb.SessionLive do
       true ->
         {:fresh, nil}
     end
+  end
+
+  defp cells_modules(cells, data) do
+      for cell <- cells,
+          Cell.evaluable?(cell),
+          modules_data = data.cell_infos[cell.id].eval.modules_metadata,
+          modules = (for {{_type, name}, data} <- modules_data, do: {name, data.line}, into: %{}),
+          do: Map.put(modules, :id, cell.id)
   end
 
   defp global_status(data) do

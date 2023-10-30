@@ -1291,6 +1291,7 @@ defmodule Livebook.Session.Data do
             evaluation_time_ms: metadata.evaluation_time_ms,
             identifiers_used: metadata.identifiers_used,
             identifiers_defined: metadata.identifiers_defined,
+            modules_metadata: metadata.modules_metadata,
             bound_to_inputs: eval_info.new_bound_to_inputs,
             evaluation_end: DateTime.utc_now(),
             code_markers: metadata.code_markers
@@ -2171,6 +2172,7 @@ defmodule Livebook.Session.Data do
       new_bound_to_inputs: %{},
       identifiers_used: [],
       identifiers_defined: %{},
+      modules_metadata: %{},
       snapshot: nil,
       evaluation_snapshot: nil,
       data: nil,
