@@ -613,6 +613,8 @@ const Session = {
     if (button) {
       const cellId = button.getAttribute("data-target");
       this.setFocusedEl(cellId);
+      const cellEditor = document.getElementById(`cell-editor-${cellId}-primary`)
+      const editor = cellEditor.querySelector(".monaco-editor");
     }
   },
 
