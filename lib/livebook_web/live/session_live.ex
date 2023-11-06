@@ -1507,13 +1507,23 @@ defmodule LivebookWeb.SessionLive do
       end
 
     data = socket.private.data
+    modules_metadata = Enum.map(data.cell_infos, fn {k, v} -> {k, v.eval.modules_metadata} end)
 
     with {:ok, cell, _section} <- Notebook.fetch_cell_and_section(data.notebook, cell_id) do
       if Runtime.connected?(data.runtime) do
         parent_locators = Session.parent_locators_for_cell(data, cell)
         node = intellisense_node(cell)
+        metadata = %{modules: modules_metadata}
 
-        ref = Runtime.handle_intellisense(data.runtime, self(), request, parent_locators, node)
+        ref =
+          Runtime.handle_intellisense(
+            data.runtime,
+            self(),
+            request,
+            parent_locators,
+            node,
+            metadata
+          )
 
         {:reply, %{"ref" => inspect(ref)}, socket}
       else
@@ -1838,6 +1848,7 @@ defmodule LivebookWeb.SessionLive do
   def handle_info({:runtime_intellisense_response, ref, request, response}, socket) do
     response = process_intellisense_response(response, request)
     payload = %{"ref" => inspect(ref), "response" => response}
+    IO.inspect(response)
     {:noreply, push_event(socket, "intellisense_response", payload)}
   end
 

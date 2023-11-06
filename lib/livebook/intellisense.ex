@@ -32,24 +32,25 @@ defmodule Livebook.Intellisense do
   @spec handle_request(
           Runtime.intellisense_request(),
           context(),
-          node()
+          node(),
+          map()
         ) :: Runtime.intellisense_response()
-  def handle_request(request, context, node)
+  def handle_request(request, context, node, metadata)
 
-  def handle_request({:completion, hint}, context, node) do
+  def handle_request({:completion, hint}, context, node, _metadata) do
     items = get_completion_items(hint, context, node)
     %{items: items}
   end
 
-  def handle_request({:details, line, column}, context, node) do
-    get_details(line, column, context, node)
+  def handle_request({:details, line, column}, context, node, metadata) do
+    get_details(line, column, context, node, metadata)
   end
 
-  def handle_request({:signature, hint}, context, node) do
+  def handle_request({:signature, hint}, context, node, _metadata) do
     get_signature_items(hint, context, node)
   end
 
-  def handle_request({:format, code}, _context, _node) do
+  def handle_request({:format, code}, _context, _node, _metadata) do
     format_code(code)
   end
 
@@ -409,9 +410,9 @@ defmodule Livebook.Intellisense do
   Returns detailed information about an identifier located
   in `column` in `line`.
   """
-  @spec get_details(String.t(), pos_integer(), context(), node()) ::
+  @spec get_details(String.t(), pos_integer(), context(), node(), map()) ::
           Runtime.details_response() | nil
-  def get_details(line, column, context, node) do
+  def get_details(line, column, context, node, metadata) do
     %{matches: matches, range: range} =
       IdentifierMatcher.locate_identifier(line, column, context, node)
 

@@ -876,9 +876,10 @@ defprotocol Livebook.Runtime do
           pid(),
           intellisense_request(),
           parent_locators(),
-          {String.t(), String.t()} | nil
+          {String.t(), String.t()} | nil,
+          map()
         ) :: reference()
-  def handle_intellisense(runtime, send_to, request, parent_locators, node)
+  def handle_intellisense(runtime, send_to, request, parent_locators, node, metadata)
 
   @doc """
   Reads file at the given absolute path within the runtime file system.
