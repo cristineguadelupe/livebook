@@ -304,6 +304,11 @@ defmodule LivebookWeb.SessionLive.Render do
         label="Secrets (se)"
         button_attrs={["data-el-secrets-list-toggle": true]}
       />
+      <.button_item
+        icon="code-box-line"
+        label="Snippets (sp)"
+        button_attrs={["data-el-snippets-list-toggle": true]}
+      />
       <div class="relative">
         <.button_item
           icon="rocket-line"
@@ -405,6 +410,14 @@ defmodule LivebookWeb.SessionLive.Render do
           secrets={@data_view.secrets}
           hub_secrets={@data_view.hub_secrets}
           hub={@data_view.hub}
+        />
+      </div>
+      <div data-el-snippets-list>
+        <.live_component
+          module={LivebookWeb.SessionLive.SnippetsListComponent}
+          id="snippets-list"
+          session={@session}
+          snippets={[1, 2, 3]}
         />
       </div>
       <div data-el-app-info>

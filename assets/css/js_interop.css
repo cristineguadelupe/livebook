@@ -236,6 +236,11 @@ solely client-side operations.
   @apply hidden;
 }
 
+[data-el-session]:not([data-js-side-panel-content="snippets-list"])
+  [data-el-snippets-list] {
+  @apply hidden;
+}
+
 [data-el-session]:not([data-js-side-panel-content="files-list"])
   [data-el-files-list] {
   @apply hidden;
@@ -263,6 +268,11 @@ solely client-side operations.
 
 [data-el-session][data-js-side-panel-content="secrets-list"]
   [data-el-secrets-list-toggle] {
+  @apply text-gray-50 bg-gray-700;
+}
+
+[data-el-session][data-js-side-panel-content="snippets-list"]
+  [data-el-snippets-list-toggle] {
   @apply text-gray-50 bg-gray-700;
 }
 
